@@ -1,5 +1,9 @@
 from django.core.paginator import EmptyPage
 from rest_framework.exceptions import ValidationError
+from django.conf import settings
+from ipware import get_client_ip
+
+CACHE_TTL = getattr(settings, "CACHE_TTL", settings.DEFAULT_TIMEOUT)
 
 
 def paginate(data, paginator, pagenumber):
@@ -29,3 +33,14 @@ def paginate(data, paginator, pagenumber):
         },
         'results': data_to_show
     }
+
+
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[-1].strip()
+    else: 
+        ip = request.META.get("REMOTE_ADDR")
+    return ip

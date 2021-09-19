@@ -150,3 +150,16 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     'http://localhost:8080',
     'http://localhost:3000',
 ]
+
+CACHE_TTL = 60
+DEFAULT_TIMEOUT = 60
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}

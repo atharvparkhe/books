@@ -8,4 +8,7 @@ urlpatterns = [
 	path('api/login/', views.logIn, name="login"),
 	path('api/forgot/', views.forgot, name="forgot"),
 	path('api/reset/', views.reset, name="reset"),
+	path('api/resend/forgot/', views.resendForgot, name="resend-forgot"),
+	path('api/resend/verify/', views.resendVerify, name="resend-verify"),
+	path('ratelimiting/', views.ratelimiting),
 ]

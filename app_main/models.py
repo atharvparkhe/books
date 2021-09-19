@@ -1,10 +1,14 @@
 from django.db import models
 from app_accounts.models import CustomerModel
 from app_base.models import BaseModel
+import random
 
 
 class CategoryModel(BaseModel):
     category_name = models.CharField(max_length=50)
+    def __str__(self):
+        return self.category_name
+    
 
 
 class QuestionModel(BaseModel):
@@ -14,6 +18,21 @@ class QuestionModel(BaseModel):
     img = models.ImageField(upload_to="Questions", null=True, blank=True)
     votes = models.IntegerField(default=0, null=True, blank=True)
     category = models.ForeignKey(CategoryModel, related_name="category", on_delete=models.CASCADE)
+    def get_answers(self):
+        answers = list(AnswersModel.objects.filter(question = self))
+        random.shuffle(answers)
+        ans_list = []
+        for ans in answers:
+            ans_list.append({
+                "id" : ans.id,
+                "user" : ans.user,
+                "img" : ans.img.url,
+                "option" : ans.answer
+            })
+        return ans_list
+    def __str__(self):
+        return self.title
+    
 
 
 class AnswersModel(BaseModel):
@@ -34,3 +53,7 @@ class BookModel(BaseModel):
     title = models.CharField(max_length=50)
     category = models.ForeignKey(CategoryModel, related_name="book_category", on_delete=models.CASCADE)
     desc = models.TextField()
+    value = models.IntegerField(default=30)
+    def __str__(self):
+        return self.title
+    
