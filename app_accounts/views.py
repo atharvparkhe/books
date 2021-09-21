@@ -13,14 +13,19 @@ def signUp(request):
     try:
         data = request.data
         serializer = signupSerializer(data=data)
+      
         if serializer.is_valid():
+        
             name = serializer.data["name"]
             email = serializer.data["email"]
             password = serializer.data["password"]
             if CustomerModel.objects.filter(email=email).first():
+                
                 return Response({"status":400, "result":"Acount already exists."})
             else:
+               
                 new_customer = CustomerModel.objects.create(email=email, name=name)
+           
                 new_customer.set_password(password)
                 thread_obj = send_verification_email(email)
                 thread_obj.start()
@@ -49,7 +54,7 @@ def verify(request):
                 return Response({"status":200, "result":"Account verification successfull"})
     except Exception as e:
         print(e)
-        return Response({"status":500, "error":e, "message":"Something went wrong"})
+    return Response({"status":500, "error":e, "message":"Something went wrong"})
 
 @api_view(["POST"])
 def logIn(request):
