@@ -9,19 +9,6 @@ from .models import *
 from .threads import *
 from .serializer import *
 
-@api_view(["GET"])
-def ratelimiting(request):
-    current_ip = get_client_ip(request)
-    if cache.get(current_ip):
-        total_calls = cache.get(current_ip)
-        if total_calls > 5 :
-            return Response({"message":"Exceeded total no of calls", "time": f"yu can try again after {cache.ttl(current_ip)} seconds"})
-        else:
-            cache.set(current_ip, total_calls+1)
-            return Response({"message":"u called this api", "total calls":total_calls})
-    cache.set(current_ip, 1, timeout=60)
-    return Response({"ip":get_client_ip(request)}, status=status.HTTP_200_OK)
-
 
 @api_view(["POST"])
 def signUp(request):
@@ -43,7 +30,7 @@ def signUp(request):
                 return Response({"result":"Account created, verification mail sent"}, status=status.HTTP_201_CREATED)
         return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({"error":e, "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 def verify(request):
@@ -61,8 +48,9 @@ def verify(request):
                 user_obj.is_verified = True
                 user_obj.save()
                 return Response({"result":"Account verification successfull"}, status=status.HTTP_202_ACCEPTED)
+        return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({"error":e, "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 def logIn(request):
@@ -84,7 +72,7 @@ def logIn(request):
             return Response({"result":"Login successfull", "token":str(jwt_token.access_token)}, status=status.HTTP_202_ACCEPTED)
         return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({"error":e, "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 def forgot(request):
@@ -100,7 +88,7 @@ def forgot(request):
             return Response({"result":"reset mail sent"}, status=status.HTTP_200_OK)
         return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({"error":e, "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 def reset(request):
@@ -120,9 +108,9 @@ def reset(request):
                 user_obj.set_password(cpw)
                 user_obj.save()
                 return Response({"result":"Password changed successfull"}, status=status.HTTP_202_ACCEPTED)
-        else:return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error":serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
-        return Response({"error":e, "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(["POST"])
@@ -146,7 +134,7 @@ def resendForgot(request):
         cache.set(current_ip, 1, timeout=60)
         return Response({"message":"OTP sent on your email"}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({"error":e}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(["POST"])
@@ -170,4 +158,4 @@ def resendVerify(request):
         cache.set(current_ip, 1, timeout=60)
         return Response({"message":"OTP sent on your email"}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({"error":e}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -14,8 +14,8 @@ class signupSerializer(serializers.Serializer):
 
 class otpSerializer(serializers.Serializer):
     otp = serializers.IntegerField(required = True)
-    npw = serializers.CharField(required = False)
-    cpw = serializers.CharField(required = False)
+    npw = serializers.CharField(required = True)
+    cpw = serializers.CharField(required = True)
 
 
 class emailSerializer(serializers.Serializer):

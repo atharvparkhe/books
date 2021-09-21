@@ -9,12 +9,33 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    quest_id = serializers.CharField(required = False, read_only=True)
     class Meta:
         model = QuestionModel
-        fields = "__all__"
+        exclude = ["created_at", "updated_at", "user"]
 
 
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnswersModel
-        fields = "__all__"
+        exclude = ["created_at", "updated_at", "user", "question"]
+
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookModel
+        exclude = ["created_at", "updated_at", "current_owner"]
+
+
+class PointsTransferSerializer(serializers.Serializer):
+    recieptant_email = serializers.EmailField(required = True)
+    no_of_points = serializers.IntegerField(required = True)
+
+
+class otpSerializer(serializers.Serializer):
+    otp = serializers.IntegerField(required = True)
+
+
+class BuySellSerializer(serializers.Serializer):
+    book_id = serializers.CharField(required = True)
+    seller_email = serializers.EmailField(required = True)

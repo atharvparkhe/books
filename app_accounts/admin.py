@@ -1,4 +1,9 @@
 from django.contrib import admin
 from .models import *
 
-admin.site.register(CustomerModel)
+
+class CustomerModelAdmin(admin.ModelAdmin):
+    list_display = ["name", "email", "points", "is_verified"]
+
+
+admin.site.register(CustomerModel, CustomerModelAdmin)

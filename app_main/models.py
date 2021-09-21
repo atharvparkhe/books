@@ -1,7 +1,6 @@
 from django.db import models
 from app_accounts.models import CustomerModel
 from app_base.models import BaseModel
-import random
 
 
 class CategoryModel(BaseModel):
@@ -9,7 +8,6 @@ class CategoryModel(BaseModel):
     def __str__(self):
         return self.category_name
     
-
 
 class QuestionModel(BaseModel):
     user = models.ForeignKey(CustomerModel, related_name="user_question", on_delete=models.PROTECT)
@@ -19,8 +17,7 @@ class QuestionModel(BaseModel):
     votes = models.IntegerField(default=0, null=True, blank=True)
     category = models.ForeignKey(CategoryModel, related_name="category", on_delete=models.CASCADE)
     def get_answers(self):
-        answers = list(AnswersModel.objects.filter(question = self))
-        random.shuffle(answers)
+        answers = [AnswersModel.objects.filter(question = self)]
         ans_list = []
         for ans in answers:
             ans_list.append({
@@ -30,6 +27,8 @@ class QuestionModel(BaseModel):
                 "option" : ans.answer
             })
         return ans_list
+    def get_answer_count(self):
+        return int(AnswersModel.objects.filter(question = self).count())
     def __str__(self):
         return self.title
     
@@ -49,11 +48,17 @@ class ImageModel(BaseModel):
 
 class BookModel(BaseModel):
     current_owner = models.ForeignKey(CustomerModel, related_name="book_owner", on_delete=models.CASCADE)
-    imgs = models.ForeignKey(ImageModel, related_name="book_imgs", on_delete=models.CASCADE)
+    imgs = models.ForeignKey(ImageModel, related_name="book_imgs", on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=50)
     category = models.ForeignKey(CategoryModel, related_name="book_category", on_delete=models.CASCADE)
     desc = models.TextField()
+    for_sale = models.BooleanField(default=False)
     value = models.IntegerField(default=30)
     def __str__(self):
         return self.title
-    
+
+
+class TransactionsModel(BaseModel):
+    seller = models.ForeignKey(CustomerModel, related_name="seller", on_delete=models.PROTECT)
+    buyer = models.ForeignKey(CustomerModel, related_name="buyer", on_delete=models.PROTECT)
+    book = models.ForeignKey(BookModel, related_name="books_transacted", on_delete=models.CASCADE)
