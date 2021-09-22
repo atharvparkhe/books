@@ -346,3 +346,51 @@ class ViewProfile(APIView):
             print(e)
         return Response(status=400, data={'error':'user not found'})
 
+
+class VotingView(APIView):
+    """
+    This Api enables the user to upvote/downvote a question or answer
+    """
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            data = request.data
+            data['user'] = request.user
+            serializer = UpvoteDownVoteSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            if serializer.data['updownvote'] == 'up':
+
+            
+                if serializer.data['type_of'] == 'question':
+                    obj = QuestionModel.objects.get(id = serializer.data['linking_id'])
+                    obj.votes += 1
+                    obj.save()
+                    return Response(status=200, data={'status':'upvoted'})
+                else:
+                    obj = AnswersModel.objects.get(id = serializer.data['linking_id'])
+                    obj.votes += 1
+                    obj.save()
+                    return Response(status=200, data={'status':'upvoted'})
+            elif serializer.data['updownvote'] == 'down':
+
+                if serializer.data['type_of'] == 'question':
+                    obj = QuestionModel.objects.get(id = serializer.data['linking_id'])
+                    obj.votes -= 1
+                    obj.save()
+                    return Response(status=200, data={'status':'downvoted'})
+                else:
+                    obj = AnswersModel.objects.get(id = serializer.data['linking_id'])
+                    obj.votes -= 1
+                    obj.save()
+                    return Response(status=200, data={'status':'downvoted'})
+
+            else:
+                return Response(status=400, data={'error':'invalid request'})        
+        except Exception as e:
+            print(e)
+
+        return Response(status=400, data={'error':'Someting went wrong'})
+         

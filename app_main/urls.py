@@ -18,5 +18,6 @@ urlpatterns = [
     path('getCategory/',GetCategory.as_view(),name='getCategory'),
     path('answerupload/',AnswerUpload.as_view(),name='answerupload'),
     path('viewProfile/',ViewProfile.as_view(),name='viewProfile'),
+    path('vote/',VotingView.as_view(),name='vote'),
 ]
 urlpatterns += router.urls

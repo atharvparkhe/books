@@ -57,3 +57,11 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = CustomerModel
 
         exclude = ('password', )
+
+
+
+class UpvoteDownVoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Voting
+
+        fields = "__all__"

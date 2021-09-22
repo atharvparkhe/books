@@ -1,3 +1,4 @@
+from re import M
 from django.db import models
 from app_accounts.models import CustomerModel
 from app_base.models import BaseModel
@@ -56,5 +57,24 @@ class BookPurchasedModel(BaseModel):
 
     def __str__(self):
         return self.book.title
+
+class Voting(BaseModel):
+    vote_choices = (
+        ('up', 'up'),
+        ('down', 'down'),
+
+    )
+
+    type_to_vote = (
+        ('question', 'question'),
+        ('answer', 'answer'),
+    )
+
+    user = models.ForeignKey(CustomerModel, related_name="voting_user", on_delete=models.CASCADE)
+    type_of = models.CharField(max_length=50, choices=type_to_vote)
+    linking_id = models.CharField(max_length=1000)
+    updownvote = models.CharField(max_length=50, choices=vote_choices)
+    def __str__(self):
+        return self.user.username
 
 
