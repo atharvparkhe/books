@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
+from django.core.paginator import Paginator
+from app_base.utils import paginate
 from .serializer import *
 from .threads import *
 from .models import *
@@ -23,15 +25,22 @@ def category(request):
 class Question(APIView):
     def get(self, request):
         try:
-            ques_objs = QuestionModel.objects.all()
-            serializer = QuestionSerializer(ques_objs, many=True)
-            return Response({"data":serializer.data}, status=status.HTTP_200_OK)
+            if request.GET.get('search'):
+                ques_objs = QuestionModel.objects.filter(desc__icontains = request.GET.get('search'))
+            else:
+                ques_objs = QuestionModel.objects.all()
+            page_no = request.GET.get('page', 1)
+            paginator = Paginator(ques_objs, 5)
+            data = paginate(ques_objs, paginator, page_no)
+            serializer = QuestionSerializer(data["results"], many=True)
+            data["results"] = serializer.data
+            return Response({"data":data}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
+            authentication_classes = [JWTAuthentication]
+            permission_classes = [IsAuthenticated]
             data = request.data
             user_obj = CustomerModel.objects.get(email=request.user.email)
             serializer = QuestionSerializer(data=data)
@@ -43,6 +52,8 @@ class Question(APIView):
             return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def patch(self, request):
         try:
+            authentication_classes = [JWTAuthentication]
+            permission_classes = [IsAuthenticated]
             data = request.data
             user_obj = CustomerModel.objects.get(email=request.user.email)
             quest_obj = QuestionModel.objects.get(id=data["quest_id"])
@@ -66,10 +77,10 @@ class Answer(APIView):
             return Response({"data":serializer.data}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
+            authentication_classes = [JWTAuthentication]
+            permission_classes = [IsAuthenticated]
             data = request.data
             user_obj = CustomerModel.objects.get(email=request.user.email)
             quest_obj = QuestionModel.objects.get(id=data["quest_id"])
@@ -82,6 +93,8 @@ class Answer(APIView):
             return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def patch(self, request):
         try:
+            authentication_classes = [JWTAuthentication]
+            permission_classes = [IsAuthenticated]
             data = request.data
             quest_obj = QuestionModel.objects.get(id=data["quest_id"])
             user_obj = CustomerModel.objects.get(email=request.user.email)
@@ -102,10 +115,10 @@ class Book(APIView):
             return Response({"data":serializer.data}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
     def post(self, request):
         try:
+            authentication_classes = [JWTAuthentication]
+            permission_classes = [IsAuthenticated]
             data = request.data
             user_obj = CustomerModel.objects.get(email=request.user.email)
             serializer = BookSerializer(data=data)
@@ -117,6 +130,8 @@ class Book(APIView):
             return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def patch(self, request):
         try:
+            authentication_classes = [JWTAuthentication]
+            permission_classes = [IsAuthenticated]
             data = request.data
             book_obj = BookModel.objects.get(id=data["book_id"])
             user_obj = CustomerModel.objects.get(email=request.user.email)
@@ -222,6 +237,49 @@ def sell(request):
                         buyer.save()
                         seller.save()
                     return Response({"message":"Insufficient point"}, status=status.HTTP_409_CONFLICT)
+        return Response({"errors":serializer.errors}, status=status.HTTP_406_NOT_ACCEPTABLE)
+    except Exception as e:
+        return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def voting(request):
+    try:
+        authentication_classes = [JWTAuthentication]
+        permission_classes = [IsAuthenticated]
+        data = request.data
+        serializer = VotingSerializer(data=data)
+        if serializer.is_valid():
+            if not data["quest_id"] and data["ans_id"]:
+                return Response({"message":"either of qustion or answer id is needed"}, status=status.HTTP_417_EXPECTATION_FAILED)
+            if data["quest_id"]:
+                quest_obj = QuestionModel.objects.get(id = data["quest_id"])
+                user_obj = CustomerModel.objects.get(email=quest_obj.user.email)
+                if data["isUpVote"]:
+                    user_obj.points += 5
+                    quest_obj.votes += 1
+                    user_obj.save()
+                    quest_obj.save()
+                    return Response({"message":"up vote successfull"}, status=status.HTTP_202_ACCEPTED)
+                elif data["isDownVote"]:
+                    quest_obj.votes -= 1
+                    quest_obj.save()
+                    return Response({"message":"down vote successfull"}, status=status.HTTP_202_ACCEPTED)
+                else : return Response({"message":"invalid query"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+            if data["ans_id"]:
+                ans_obj = QuestionModel.objects.get(id = data["ans_id"])
+                user_obj = CustomerModel.objects.get(email=ans_obj.user.email)
+                if data["isUpVote"]:
+                    user_obj.points += 5
+                    ans_obj.votes += 1
+                    user_obj.save()
+                    ans_obj.save()
+                    return Response({"message":"up vote successfull"}, status=status.HTTP_202_ACCEPTED)
+                elif data["isDownVote"]:
+                    ans_obj.votes -= 1
+                    ans_obj.save()
+                    return Response({"message":"down vote successfull"}, status=status.HTTP_202_ACCEPTED)
+                else : return Response({"message":"invalid query"}, status=status.HTTP_406_NOT_ACCEPTABLE)
         return Response({"errors":serializer.errors}, status=status.HTTP_406_NOT_ACCEPTABLE)
     except Exception as e:
         return Response({"error":str(e), "message":"Something went wrong"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

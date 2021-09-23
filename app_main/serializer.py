@@ -39,3 +39,10 @@ class otpSerializer(serializers.Serializer):
 class BuySellSerializer(serializers.Serializer):
     book_id = serializers.CharField(required = True)
     seller_email = serializers.EmailField(required = True)
+
+
+class VotingSerializer(serializers.Serializer):
+    quest_id = serializers.CharField(required=False)
+    ans_id = serializers.CharField(required=False)
+    isUpVote = serializers.BooleanField(required=False)
+    isDownVote = serializers.BooleanField(required=False)

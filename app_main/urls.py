@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/request/', views.request_points, name="request"),
     path('api/buy/', views.buy, name="buy"),
     path('api/sell/', views.sell, name="sell"),
+    path('api/voting/', views.voting, name="voting"),
 ]

@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
 from app_accounts.models import CustomerModel
 from app_base.models import BaseModel
 
@@ -62,3 +64,19 @@ class TransactionsModel(BaseModel):
     seller = models.ForeignKey(CustomerModel, related_name="seller", on_delete=models.PROTECT)
     buyer = models.ForeignKey(CustomerModel, related_name="buyer", on_delete=models.PROTECT)
     book = models.ForeignKey(BookModel, related_name="books_transacted", on_delete=models.CASCADE)
+
+
+@receiver(post_save, sender=QuestionModel)
+def update_points(sender, instance, created, *args, **kwargs):
+        if created:
+            user_obj = CustomerModel.objects.get(email = instance.user.email)
+            user_obj.points += 5
+            user_obj.save()
+
+
+@receiver(post_save, sender=AnswersModel)
+def update_point(sender, instance, created, *args, **kwargs):
+        if created:
+            user_obj = CustomerModel.objects.get(email = instance.user.email)
+            user_obj.points += 5
+            user_obj.save()
