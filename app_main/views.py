@@ -70,10 +70,23 @@ class BookBuy(APIView):
     def post(self, request):
         try:
             data = request.data
-            book = BookModel.objects.get(id = data['book_id'])
+            serializer = IDSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            book_id = serializer.data['id']
+            book = BookModel.objects.get(id = book_id)
             obj = CustomerModel.objects.get(id = request.user.id)
+            if BookModel.type_of_book == "hard-copy":
+                if BookModel.is_purchased == True:
+                    return Response({
+                        'status' : 400,
+                        'message' : 'Book already purchased'
+                    })
+            
+
+
+
             if book.credit > obj.points :
-                return Response({'message':'Not enough points'}, status=400)
+                return Response({'message':'Not enough points',"status":400}, status=400)
 
             
             obj.points -= book.credit
@@ -84,15 +97,24 @@ class BookBuy(APIView):
            
             book.current_owner.save()         
             
-      
+            if BookModel.type_of_book == "hard-copy":
+                book.is_purchased = True
+                book.save()
+            
+            return Response({
+                'status' : 200,
+                'message' : 'Book purchased successfully'
+            })
         
             c = BookPurchasedModel.objects.create(user = obj, book = book)
-            c.save()
+           
             
-            return Response(status=200, data={"message": "Success"})
+            return Response(status=200, data={"message": "Successfully book Purchased","status":200})
         except Exception as e:
+            return Response({"message": str(e),"status":400}, status=400)
             print(e)
-        return Response(status=400, data={'error':'book not found'})
+           # return Response(status=400, data={"message": e,"status":400})
+        return Response(status=400, data={'error':'book not found',"status":400})
 
 
 
@@ -185,38 +207,19 @@ class QusetionView(generics.ListAPIView):
             
 
 
-class AnswerView(generics.ListAPIView):
+class AnswerView(generics.RetrieveAPIView):
     """
     This Api enables the user to view all Answers specific to a question
     """
 
+    
+    authentication_classes = (JWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
-
-    queryset = AnswersModel.objects.all()
-    serializer_class = AnswerSerializer
-
-
-
-
-    def list(self , request):
-        
-        objs = self.queryset.filter(question = self.request.data['question_id'])
-        page = request.GET.get('page', 1)
-
-        paginator = Paginator(objs, 2)
-        data = paginate(objs ,paginator , page )
-
-        serializer = self.serializer_class(data['results'] , many = True)
-        #print(serializer.data)
-        data['results'] = serializer.data
-
-        return Response({
-            'status' : 200,
-       
-            'data' : data 
-        })
-
-                
+  
+    queryset = QuestionModel.objects.all()
+    serializer_class = QuestionAnswerSerializer
+     
 
 
 class BookPurchasedView(generics.ListAPIView):
@@ -348,9 +351,9 @@ class ViewProfile(APIView):
             print(e)
             return Response({
                 'status' : 400,
-                'error' : "error"
+                'error' : str(e)
             })
-        return Response(status=400, data={'error':'user not found'})
+        return Response(status=400, data={'error':'user not found','status':400})
 
 
 class VotingView(APIView):
@@ -374,29 +377,29 @@ class VotingView(APIView):
                     obj = QuestionModel.objects.get(id = serializer.data['linking_id'])
                     obj.votes += 1
                     obj.save()
-                    return Response(status=200, data={'status':'upvoted'})
+                    return Response(status=200, data={'message':'upvoted',"status":200})
                 else:
                     obj = AnswersModel.objects.get(id = serializer.data['linking_id'])
                     obj.votes += 1
                     obj.save()
-                    return Response(status=200, data={'status':'upvoted'})
+                    return Response(status=200, data={'message':'upvoted',"status":200})
             elif serializer.data['updownvote'] == 'down':
 
                 if serializer.data['type_of'] == 'question':
                     obj = QuestionModel.objects.get(id = serializer.data['linking_id'])
                     obj.votes -= 1
                     obj.save()
-                    return Response(status=200, data={'status':'downvoted'})
+                    return Response(status=200, data={'message':'downvoted',"status":200})
                 else:
                     obj = AnswersModel.objects.get(id = serializer.data['linking_id'])
                     obj.votes -= 1
                     obj.save()
-                    return Response(status=200, data={'status':'downvoted'})
+                    return Response(status=200, data={'message':'downvoted',"status":200})
 
             else:
-                return Response(status=400, data={'error':'invalid request'})        
+                return Response(status=400, data={'error':'invalid request',"status":400})        
         except Exception as e:
             print(e)
 
-        return Response(status=400, data={'error':'Someting went wrong'})
+        return Response(status=400, data={'error':'Someting went wrong',"status":400})
          

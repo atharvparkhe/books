@@ -1,4 +1,5 @@
 from re import M
+import re
 from django.db import models
 from app_accounts.models import CustomerModel
 from app_base.models import BaseModel
@@ -38,17 +39,26 @@ class AnswersModel(BaseModel):
 
 
 
-
 class BookModel(BaseModel):
+    Choices_for_book = (
+        ('ebook', 'ebook'),
+        ('hard-copy', 'hard-copy'),
+    )
     current_owner = models.ForeignKey(CustomerModel, related_name="book_owner", on_delete=models.CASCADE)
-    imgs =  models.ImageField(upload_to="book_img", null=True, blank=True)
+
     title = models.CharField(max_length=50)
     file = models.FileField(upload_to='files/',null=True,blank=True)
     desc = models.TextField()
     credit = models.IntegerField(default=0, null=True, blank=True)
+    type_of_book = models.CharField(max_length=50, choices=Choices_for_book)
+    is_purchased= models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
+
+class BookImage(models.Model):
+    book = models.ForeignKey(BookModel, on_delete=models.CASCADE,related_name="book_image")
+    image = models.FileField(blank=True)
 
 
 class BookPurchasedModel(BaseModel):
