@@ -43,7 +43,7 @@ class BookModel(BaseModel):
     current_owner = models.ForeignKey(CustomerModel, related_name="book_owner", on_delete=models.CASCADE)
     imgs =  models.ImageField(upload_to="book_img", null=True, blank=True)
     title = models.CharField(max_length=50)
-
+    file = models.FileField(upload_to='files/',null=True,blank=True)
     desc = models.TextField()
     credit = models.IntegerField(default=0, null=True, blank=True)
 
@@ -75,6 +75,6 @@ class Voting(BaseModel):
     linking_id = models.CharField(max_length=1000)
     updownvote = models.CharField(max_length=50, choices=vote_choices)
     def __str__(self):
-        return self.user.username
+        return self.user.email + " " + self.updownvote
 
 

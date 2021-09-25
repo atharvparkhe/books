@@ -1,5 +1,5 @@
 from app_main.models import *
-from rest_framework import serializers
+from rest_framework import fields, serializers
 from app_accounts.models import *
 
 
@@ -21,10 +21,15 @@ class BookPurchasedSerializer(serializers.ModelSerializer):
 
 
 class BookViewSerializer(serializers.ModelSerializer):
+    fileext = serializers.SerializerMethodField()
     class Meta:
         model = BookModel
 
-        fields = "__all__"        
+        fields = "__all__" 
+
+    def get_fileext(self, obj):
+        return str(obj.file).split('.')[-1]
+    
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,8 +61,8 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerModel
 
-        exclude = ('password', )
 
+        fields = ['id', 'email', 'name',  'phone','points']
 
 
 class UpvoteDownVoteSerializer(serializers.ModelSerializer):

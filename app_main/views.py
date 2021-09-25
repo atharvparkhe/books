@@ -53,6 +53,8 @@ class BookAdminViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=200, headers=headers)
 
+        
+
 
 
 class BookBuy(APIView):
@@ -344,6 +346,10 @@ class ViewProfile(APIView):
             return Response(serializer.data)
         except Exception as e:
             print(e)
+            return Response({
+                'status' : 400,
+                'error' : "error"
+            })
         return Response(status=400, data={'error':'user not found'})
 
 
